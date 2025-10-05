@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사기 정보 조회</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .search-form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        #searchInput {
+            width: 70%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 24px 0 0 24px;
+            font-size: 16px;
+            outline: none;
+        }
+        #searchInput:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        #searchButton {
+            padding: 12px 20px;
+            border: 1px solid #007bff;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 0 24px 24px 0;
+            outline: none;
+        }
+        #searchButton:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .positive {
+            color: #d93025;
+        }
+        .negative {
+            color: #1a73e8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>사기 정보 조회 시스템</h1>
+        <form id="searchForm" class="search-form">
+            <input type="text" id="searchInput" placeholder="이름, 닉네임, 연락처, 계좌번호 등 입력" required>
+            <button type="submit" id="searchButton">검색</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const query = document.getElementById('searchInput').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!query) {
+                resultDiv.textContent = '';
+                return;
+            }
+
+            // 검색어에서 특수문자(하이픈, 공백) 제거
+            const normalizedQuery = query.replace(/[\s-]/g, '');
+
+            try {
+                const response = await fetch('trash.json');
+                const data = await response.json();
+                let found = false;
+
+                for (const item of data) {
+                    // 이름, 별명, 카카오ID 등 확인
+                    const nameFields = [item.name, item.alt_name, item.kakao_id].flat().filter(Boolean);
+                    if (Array.isArray(item.nickname)) {
+                        nameFields.push(...item.nickname);
+                    } else if (item.nickname) {
+                        nameFields.push(item.nickname);
+                    }
+
+                    if (nameFields.some(field => field && field.includes(query))) {
+                        found = true;
+                        break;
+                    }
+
+                    // 전화번호 확인 (하이픈, 공백 제거 후 비교)
+                    if (item.phone && item.phone.some(p => p.replace(/[\s-]/g, '').includes(normalizedQuery))) {
+                        found = true;
+                        break;
+                    }
+
+                    // 계좌번호 확인 (하이픈, 공백 제거 후 비교)
+                    if (item.bank_accounts && item.bank_accounts.some(acc => acc.account.replace(/[\s-]/g, '').includes(normalizedQuery))) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    resultDiv.textContent = '사기꾼일 확률이 높습니다.';
+                    resultDiv.className = 'positive';
+                } else {
+                    resultDiv.textContent = '일치하는 정보가 없습니다.';
+                    resultDiv.className = 'negative';
+                }
+            } catch (error) {
+                console.error('데이터를 불러오는 데 실패했습니다:', error);
+                resultDiv.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
+                resultDiv.className = 'positive';
+            }
+        });
+    </script>
+
+</body>
+</html>
