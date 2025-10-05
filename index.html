@@ -122,6 +122,7 @@
                 const response = await fetch('trash.json');
                 const data = await response.json();
                 let foundPerson = null;
+                let matchedBy = null; // 무엇으로 검색되었는지 확인 ('name', 'other')
 
                 for (const item of data) {
                     // 이름, 별명, 카카오ID 등 확인
@@ -134,18 +135,21 @@
 
                     if (nameFields.some(field => field && field.includes(query))) {
                         foundPerson = item;
+                        matchedBy = 'name';
                         break;
                     }
 
                     // 전화번호 확인 (하이픈, 공백 제거 후 비교)
                     if (item.phone && item.phone.some(p => p.replace(/[\s-]/g, '').includes(normalizedQuery))) {
                         foundPerson = item;
+                        matchedBy = 'other';
                         break;
                     }
 
                     // 계좌번호 확인 (하이픈, 공백 제거 후 비교)
                     if (item.bank_accounts && item.bank_accounts.some(acc => acc.account.replace(/[\s-]/g, '').includes(normalizedQuery))) {
                         foundPerson = item;
+                        matchedBy = 'other';
                         break;
                     }
                 }
@@ -158,8 +162,8 @@
                 // 1. 텍스트와 기본 스타일을 먼저 적용합니다.
                 if (foundPerson) {
                     let resultHTML = '사기꾼일 확률이 높습니다.';
-                    // 이름 정보가 있는 경우에만 이름을 표시합니다.
-                    if (foundPerson.name) {
+                    // 이름 외 정보(연락처, 계좌)로 검색했고, 이름 정보가 있을 때만 추가 문구를 표시합니다.
+                    if (matchedBy === 'other' && foundPerson.name) {
                         resultHTML += `<small>혹시 상대방의 이름이 ${foundPerson.name}인가요?</small>`;
                     }
                     resultDiv.innerHTML = resultHTML;
