@@ -69,6 +69,20 @@
         .negative {
             color: #1a73e8;
         }
+        /* 검색 결과 하이라이트 애니메이션 */
+        @keyframes highlight-result {
+            from {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .highlight {
+            animation: highlight-result 0.5s ease-out;
+        }
     </style>
 </head>
 <body>
@@ -129,13 +143,25 @@
                     }
                 }
 
+                // 이전 결과의 클래스를 초기화합니다.
+                resultDiv.classList.remove('positive', 'negative', 'highlight');
+
+                // 애니메이션을 안정적으로 다시 시작하기 위한 방법입니다.
+                // 1. 텍스트와 기본 스타일을 먼저 적용합니다.
                 if (found) {
                     resultDiv.textContent = '사기꾼일 확률이 높습니다.';
-                    resultDiv.className = 'positive';
+                    resultDiv.classList.add('positive');
                 } else {
                     resultDiv.textContent = '일치하는 정보가 없습니다.';
-                    resultDiv.className = 'negative';
+                    resultDiv.classList.add('negative');
                 }
+
+                // 2. 브라우저가 변경사항을 그리도록 강제합니다. (reflow)
+                void resultDiv.offsetWidth;
+
+                // 3. 애니메이션 클래스를 추가하여 효과를 다시 재생합니다.
+                resultDiv.classList.add('highlight');
+
             } catch (error) {
                 console.error('데이터를 불러오는 데 실패했습니다:', error);
                 resultDiv.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
