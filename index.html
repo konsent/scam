@@ -83,6 +83,13 @@
         .highlight {
             animation: highlight-result 0.5s ease-out;
         }
+        #result small {
+            display: block;
+            margin-top: 8px;
+            font-size: 15px;
+            font-weight: normal;
+            color: #555;
+        }
     </style>
 </head>
 <body>
@@ -114,7 +121,7 @@
             try {
                 const response = await fetch('trash.json');
                 const data = await response.json();
-                let found = false;
+                let foundPerson = null;
 
                 for (const item of data) {
                     // 이름, 별명, 카카오ID 등 확인
@@ -126,30 +133,36 @@
                     }
 
                     if (nameFields.some(field => field && field.includes(query))) {
-                        found = true;
+                        foundPerson = item;
                         break;
                     }
 
                     // 전화번호 확인 (하이픈, 공백 제거 후 비교)
                     if (item.phone && item.phone.some(p => p.replace(/[\s-]/g, '').includes(normalizedQuery))) {
-                        found = true;
+                        foundPerson = item;
                         break;
                     }
 
                     // 계좌번호 확인 (하이픈, 공백 제거 후 비교)
                     if (item.bank_accounts && item.bank_accounts.some(acc => acc.account.replace(/[\s-]/g, '').includes(normalizedQuery))) {
-                        found = true;
+                        foundPerson = item;
                         break;
                     }
                 }
 
                 // 이전 결과의 클래스를 초기화합니다.
                 resultDiv.classList.remove('positive', 'negative', 'highlight');
+                resultDiv.innerHTML = ''; // 내용을 비웁니다.
 
                 // 애니메이션을 안정적으로 다시 시작하기 위한 방법입니다.
                 // 1. 텍스트와 기본 스타일을 먼저 적용합니다.
-                if (found) {
-                    resultDiv.textContent = '사기꾼일 확률이 높습니다.';
+                if (foundPerson) {
+                    let resultHTML = '사기꾼일 확률이 높습니다.';
+                    // 이름 정보가 있는 경우에만 이름을 표시합니다.
+                    if (foundPerson.name) {
+                        resultHTML += `<small>혹시 상대방의 이름이 ${foundPerson.name}인가요?</small>`;
+                    }
+                    resultDiv.innerHTML = resultHTML;
                     resultDiv.classList.add('positive');
                 } else {
                     resultDiv.textContent = '일치하는 정보가 없습니다.';
