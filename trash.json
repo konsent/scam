@@ -109,5 +109,10 @@
     "phone": ["010-7748-1343"],
     "additional_info": "보드라이프 13기 멤버",
     "bank_accounts": []
+  },
+  {
+    "name": "현구",
+    "phone": ["010-2371-9929"],
+    "bank_accounts": []
   }
 ]
