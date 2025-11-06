@@ -139,6 +139,7 @@
                 const data = await response.json();
                 let foundPerson = null;
                 let matchedBy = null; // 무엇으로 검색되었는지 확인 ('name', 'other')
+                let matchedName = null; // 부분 일치된 전체 이름을 저장
 
                 for (const item of data) {
                     // 이름, 별명, 카카오ID 등 확인
@@ -149,9 +150,12 @@
                         nameFields.push(item.nickname);
                     }
 
-                    if (nameFields.some(field => field && field.includes(query))) {
+                    const partiallyMatchedName = nameFields.find(field => field && field.includes(query));
+
+                    if (partiallyMatchedName) {
                         foundPerson = item;
                         matchedBy = 'name';
+                        matchedName = partiallyMatchedName;
                         break;
                     }
 
@@ -178,8 +182,12 @@
                 // 1. 텍스트와 기본 스타일을 먼저 적용합니다.
                 if (foundPerson) {
                     let resultHTML = '사기꾼일 확률이 높습니다.';
-                    // 이름 외 정보(연락처, 계좌)로 검색했고, 이름 정보가 있을 때만 추가 문구를 표시합니다.
-                    if (matchedBy === 'other' && foundPerson.name) {
+                    // 이름으로 검색되었고, 검색어가 전체 이름과 일치하지 않을 때
+                    if (matchedBy === 'name' && matchedName && query !== matchedName) {
+                        resultHTML += `<small>혹시 상대방의 이름이 ${matchedName}인가요?</small>`;
+                    } 
+                    // 이름 외 정보(연락처, 계좌)로 검색했고, 이름 정보가 있을 때
+                    else if (matchedBy === 'other' && foundPerson.name) {
                         resultHTML += `<small>혹시 상대방의 이름이 ${foundPerson.name}인가요?</small>`;
                     }
                     resultDiv.innerHTML = resultHTML;
