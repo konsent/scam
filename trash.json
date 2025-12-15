@@ -130,5 +130,12 @@
     "name": "현구",
     "phone": ["010-2371-9929"],
     "bank_accounts": []
+  },
+  {
+    "name": "엄태희",
+    "phone": [],
+    "bank_accounts": [
+      { "bank": "농협", "account": "3521824067273" }
+    ]
   }
 ]
